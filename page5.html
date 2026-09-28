@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUKU — Inventory Status</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-indigo-600 text-white shadow-sm py-4">
+        <div class="max-w-xl mx-auto px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black tracking-tight">LUKU Mini</h1>
+                <p class="text-indigo-200 text-xs font-medium">Academic MVP Testbed</p>
+            </div>
+            <div class="bg-indigo-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-indigo-500">
+                👤 Tester Profile ID: <span id="testerIdBadge">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-xl w-full mx-auto px-4 py-8">
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="text-center space-y-1">
+                <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Step 5 of 5</span>
+                <h2 class="text-xl font-bold text-slate-900">Wardrobe Inventory Status</h2>
+                <p class="text-slate-500 text-xs">See what clothes you have left to wear.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                    <span id="p5CleanCounter" class="block text-3xl font-black text-emerald-600">0</span>
+                    <span class="text-[10px] uppercase font-bold text-emerald-700">🟢 Available to Wear</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-100 p-3 rounded-xl">
+                    <span id="p5DirtyCounter" class="block text-3xl font-black text-rose-600">0</span>
+                    <span class="text-[10px] uppercase font-bold text-rose-700">🔴 Laundry Basket</span>
+                </div>
+            </div>
+
+            <button onclick="washLaundry()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-sm">
+                🧺 Refresh Wardrobe (Mark Worn Clothes as Washed/Clean)
+            </button>
+
+            <div class="border-t border-slate-200 pt-4 space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Garment Inventory Mapping</h3>
+                <div id="p5InventoryList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 shadow-xl sticky bottom-0 z-50">
+        <div class="max-w-xl mx-auto px-4 flex justify-between items-center">
+            <button onclick="window.location.href='page4.html'" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
+                ◀ Back to Matcher
+            </button>
+            <button onclick="window.location.href='index.html'" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
+                🔄 Switch User Slot
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const activeSlot = localStorage.getItem('luku_active_tester_slot') || "1";
+        document.getElementById('testerIdBadge').innerText = activeSlot;
+        const storageKey = `luku_tester_storage_slot_${activeSlot}`;
+
+        let wardrobe = JSON.parse(localStorage.getItem(storageKey)) || [];
+        renderInventory();
+
+        function renderInventory() {
+            const list = document.getElementById('p5InventoryList');
+            const cleanCount = wardrobe.filter(i => !i.isWorn).length;
+            const dirtyCount = wardrobe.filter(i => i.isWorn).length;
+
+            document.getElementById('p5CleanCounter').innerText = cleanCount;
+            document.getElementById('p5DirtyCounter').innerText = dirtyCount;
+            list.innerHTML = '';
+
+            if (wardrobe.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No items logged yet.</p>`;
+                return;
+            }
+
+            wardrobe.forEach(item => {
+                const row = document.createElement('div');
+                row.className = `p-2.5 rounded-lg border flex justify-between items-center text-xs font-medium ${item.isWorn ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-white border-slate-200 text-slate-700'}`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span>${item.isWorn ? '🧺' : '✨'}</span>
+                        <span class="truncate font-bold">${item.name}</span>
+                        <span class="text-[9px] uppercase tracking-wider bg-slate-100 text-slate-500 px-1 rounded">${item.category}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${item.isWorn ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">${item.isWorn ? 'Worn' : 'Clean'}</span>
+                        <button onclick="removeItem('${item.id}')" class="text-slate-300 hover:text-rose-600 transition-colors">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function washLaundry() {
+            wardrobe.forEach(i => i.isWorn = false);
+            localStorage.setItem(storageKey, JSON.stringify(wardrobe));
+            renderInventory();
+            alert("All clothes washed! Your digital wardrobe is completely refreshed.");
+        }
+
+        function removeItem(id) {
+            wardrobe = wardrobe.filter(i => i.id !== id);
+            localStorage.setItem(storageKey, JSON.stringify(wardrobe));
+            renderInventory();
+        }
+    </script>
+</body>
+</html>

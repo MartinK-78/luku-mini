@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUKU — Outfit Matcher</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-indigo-600 text-white shadow-sm py-4">
+        <div class="max-w-xl mx-auto px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black tracking-tight">LUKU Mini</h1>
+                <p class="text-indigo-200 text-xs font-medium">Academic MVP Testbed</p>
+            </div>
+            <div class="bg-indigo-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-indigo-500">
+                👤 Tester Profile ID: <span id="testerIdBadge">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-xl w-full mx-auto px-4 py-8">
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="text-center space-y-1">
+                <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Step 4 of 5</span>
+                <h2 class="text-xl font-bold text-slate-900">Outfit Generator Matcher</h2>
+                <p class="text-slate-500 text-xs">Picks clean clothes matching your occasion.</p>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase">Target Occasion Intent</label>
+                <select id="matcherOccasionTarget" onchange="resetMatchView()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm font-semibold text-slate-700">
+                    <option value="Casual">☀️ Casual</option>
+                    <option value="Work">💼 Work / Official</option>
+                    <option value="Party">🎉 Party / Event</option>
+                    <option value="School">🎓 School / Campus</option>
+                </select>
+            </div>
+
+            <div id="matcherResultBox" class="hidden border-2 border-dashed border-indigo-200 rounded-xl p-4 bg-indigo-50/20 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] font-black bg-indigo-600 text-white px-2 py-0.5 rounded tracking-widest uppercase">MATCH SUCCESS</span>
+                    <button onclick="toggleLike()" id="likeComboBtn" class="text-xs bg-white px-2 py-1 rounded border border-slate-200 font-bold transition-all shadow-sm">🤍 Like Outfit</button>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-xs flex justify-between items-center">
+                        <span class="text-xs font-bold text-indigo-500 uppercase">👕 Top</span>
+                        <span id="matchTopText" class="font-bold text-sm text-slate-800">--</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-xs flex justify-between items-center">
+                        <span class="text-xs font-bold text-teal-500 uppercase">👖 Bottom</span>
+                        <span id="matchBottomText" class="font-bold text-sm text-slate-800">--</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-xs flex justify-between items-center">
+                        <span class="text-xs font-bold text-amber-500 uppercase">👟 Shoes</span>
+                        <span id="matchShoesText" class="font-bold text-sm text-slate-800">--</span>
+                    </div>
+                </div>
+
+                <button onclick="lockAndWear()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-lg shadow-xs transition-colors">
+                    ✅ Lock Outfit & Mark as Worn Today
+                </button>
+            </div>
+
+            <div id="matcherEmptyBox" class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
+                No active combination. Tap below to run the random engine matching guidelines!
+            </div>
+
+            <button onclick="shuffleOutfit()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-sm text-sm transition-all flex items-center justify-center gap-2">
+                🔄 Shuffle & Generate Outfit Combination
+            </button>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 shadow-xl sticky bottom-0 z-50">
+        <div class="max-w-xl mx-auto px-4 flex justify-between items-center">
+            <button onclick="window.location.href='page3.html'" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
+                ◀ Back
+            </button>
+            <button onclick="window.location.href='page5.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
+                Next ▶
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const activeSlot = localStorage.getItem('luku_active_tester_slot') || "1";
+        document.getElementById('testerIdBadge').innerText = activeSlot;
+        
+        const storageKey = `luku_tester_storage_slot_${activeSlot}`;
+        const genderKey = `luku_gender_pref_${activeSlot}`;
+        
+        let wardrobe = JSON.parse(localStorage.getItem(storageKey)) || [];
+        let genderPref = localStorage.getItem(genderKey) || "All";
+        let activeCombo = null;
+
+        function resetMatchView() {
+            activeCombo = null;
+            document.getElementById('matcherResultBox').classList.add('hidden');
+            document.getElementById('matcherEmptyBox').classList.remove('hidden');
+        }
+
+        function shuffleOutfit() {
+            const contextOccasion = document.getElementById('matcherOccasionTarget').value;
+
+            // Filtration strategy applying worn constraints [1, 2]
+            const pool = wardrobe.filter(item => {
+                const isClean = !item.isWorn;
+                const matchOccasion = item.occasion === contextOccasion;
+                return isClean && matchOccasion;
+            });
+
+            const tops = pool.filter(i => i.category === 'Top');
+            const bottoms = pool.filter(i => i.category === 'Bottom');
+            const shoes = pool.filter(i => i.category === 'Shoes');
+
+            if (tops.length === 0 || bottoms.length === 0 || shoes.length === 0) {
+                alert(`Insufficient options! Add more clean items under the "${contextOccasion}" occasion category map to unlock configurations.`);
+                return;
+            }
+
+            activeCombo = {
+                Top: tops[Math.floor(Math.random() * tops.length)],
+                Bottom: bottoms[Math.floor(Math.random() * bottoms.length)],
+                Shoes: shoes[Math.floor(Math.random() * shoes.length)]
+            };
+
+            document.getElementById('matcherEmptyBox').classList.add('hidden');
+            document.getElementById('matcherResultBox').classList.remove('hidden');
+
+            document.getElementById('matchTopText').innerText = activeCombo.Top.name;
+            document.getElementById('matchBottomText').innerText = activeCombo.Bottom.name;
+            document.getElementById('matchShoesText').innerText = activeCombo.Shoes.name;
+
+            syncLikeBtn();
+        }
+
+        function syncLikeBtn() {
+            const btn = document.getElementById('likeComboBtn');
+            const isLiked = activeCombo.Top.isLiked && activeCombo.Bottom.isLiked && activeCombo.Shoes.isLiked;
+            btn.innerText = isLiked ? "❤️ Liked" : "🤍 Like Outfit";
+        }
+
+        function toggleLike() {
+            if (!activeCombo) return;
+            const targetState = !activeCombo.Top.isLiked;
+
+            [activeCombo.Top.id, activeCombo.Bottom.id, activeCombo.Shoes.id].forEach(id => {
+                const match = wardrobe.find(i => i.id === id);
+                if (match) match.isLiked = targetState;
+            });
+
+            localStorage.setItem(storageKey, JSON.stringify(wardrobe));
+            syncLikeBtn();
+        }
+
+        function lockAndWear() {
+            if (!activeCombo) return;
+
+            [activeCombo.Top.id, activeCombo.Bottom.id, activeCombo.Shoes.id].forEach(id => {
+                const match = wardrobe.find(i => i.id === id);
+                if (match) match.isWorn = true;
+            });
+
+            localStorage.setItem(storageKey, JSON.stringify(wardrobe));
+            alert("Outfit locked! These items are now moved to the laundry basket.");
+            window.location.href = 'page5.html';
+        }
+    </script>
+</body>
+</html>
