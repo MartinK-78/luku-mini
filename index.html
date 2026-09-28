@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUKU — Welcome</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-indigo-600 text-white shadow-sm py-4">
+        <div class="max-w-xl mx-auto px-4">
+            <h1 class="text-xl font-black tracking-tight">LUKU Mini</h1>
+            <p class="text-indigo-200 text-xs font-medium">Academic MVP Testbed</p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-xl w-full mx-auto px-4 py-8">
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="text-center space-y-2">
+                <span class="text-3xl">👗</span>
+                <h2 class="text-2xl font-black text-slate-900">Welcome to LUKU</h2>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    LUKU turns your physical wardrobe into a searchable digital asset. This mini-software helps you log garments instantly and generates occasion-driven outfits using only what is clean and available.
+                </p>
+            </div>
+
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-3">
+                <label class="block text-xs font-bold text-indigo-700 uppercase tracking-wide text-center">
+                    Select Your Unique Tester ID Slot (1 - 10)
+                </label>
+                <p class="text-[11px] text-indigo-500 text-center">
+                    Up to 10 independent users can save clothes in this browser without overlapping profiles.
+                </p>
+                <select id="testerSlotInput" class="w-full px-3 py-2 text-center font-bold text-slate-700 bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="1">👤 Tester Profile #1</option>
+                    <option value="2">👤 Tester Profile #2</option>
+                    <option value="3">👤 Tester Profile #3</option>
+                    <option value="4">👤 Tester Profile #4</option>
+                    <option value="5">👤 Tester Profile #5</option>
+                    <option value="6">👤 Tester Profile #6</option>
+                    <option value="7">👤 Tester Profile #7</option>
+                    <option value="8">👤 Tester Profile #8</option>
+                    <option value="9">👤 Tester Profile #9</option>
+                    <option value="10">👤 Tester Profile #10</option>
+                </select>
+            </div>
+
+            <button onclick="saveSessionAndProceed()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+                Open My Digital Wardrobe ➔
+            </button>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        LUKU Project Team • Page 1 of 5
+    </footer>
+
+    <script>
+        function saveSessionAndProceed() {
+            const slot = document.getElementById('testerSlotInput').value;
+            // Persist the active selected profile ID across pages using localStorage
+            localStorage.setItem('luku_active_tester_slot', slot);
+            window.location.href = 'page2.html';
+        }
+    </script>
+</body>
+</html>
